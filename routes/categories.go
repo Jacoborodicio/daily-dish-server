@@ -77,7 +77,7 @@ func UpdateCategory(c *gin.Context) {
 	categoryID := c.Params.ByName("id")
 	docId, _ := primitive.ObjectIDFromHex(categoryID)
 	ctx, cancel := context.WithTimeout(context.Background(), 100*time.Second)
-	var category models.Category
+	var category, updatedCategory models.Category
 	if err := c.BindJSON(&category); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		fmt.Println(err)
@@ -89,13 +89,29 @@ func UpdateCategory(c *gin.Context) {
 		fmt.Println(validateErr)
 		return
 	}
+	if err := categoryCollection.FindOne(ctx, bson.M{"_id": docId}).Decode(&updatedCategory); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		fmt.Println(err)
+		return
+	}
+
+	// Just to update what we receive
+	if category.Name != nil {
+		updatedCategory.Name = category.Name
+	}
+	if category.Description != nil {
+		updatedCategory.Description = category.Description
+	}
+	if category.Favourite != nil {
+		updatedCategory.Favourite = category.Favourite
+	}
 	result, err := categoryCollection.ReplaceOne(
 		ctx,
 		bson.M{"_id": docId},
 		bson.M{
-			"name":        category.Name,
-			"description": category.Description,
-			"favourite":   category.Favourite,
+			"name":        updatedCategory.Name,
+			"description": updatedCategory.Description,
+			"favourite":   updatedCategory.Favourite,
 		},
 	)
 	if err != nil {
