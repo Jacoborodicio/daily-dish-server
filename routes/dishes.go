@@ -81,7 +81,7 @@ func UpdateDish(c *gin.Context) {
 	dishId := c.Params.ByName("id")
 	docId, _ := primitive.ObjectIDFromHex(dishId)
 	ctx, cancel := context.WithTimeout(context.Background(), 100*time.Second)
-	var dish models.Dish
+	var dish, updatedDish models.Dish
 	if err := c.BindJSON(&dish); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		fmt.Println(err)
@@ -93,16 +93,43 @@ func UpdateDish(c *gin.Context) {
 		fmt.Println(validateErr)
 		return
 	}
+	// Getting the old dish
+	if err := dishCollection.FindOne(ctx, bson.M{"_id": docId}).Decode(&updatedDish); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		fmt.Println(err)
+		return
+	}
+
+	// Updating only the changed fields
+	if dish.Name != nil {
+		updatedDish.Name = dish.Name
+	}
+	if dish.Fat != nil {
+		updatedDish.Fat = dish.Fat
+	}
+	if dish.Ingredients != nil {
+		updatedDish.Ingredients = dish.Ingredients
+	}
+	if dish.Recipe != nil {
+		updatedDish.Recipe = dish.Recipe
+	}
+	if dish.Calories != nil {
+		updatedDish.Calories = dish.Calories
+	}
+	if dish.PreparationTime != nil {
+		updatedDish.PreparationTime = dish.PreparationTime
+	}
+
 	result, err := dishCollection.ReplaceOne(
 		ctx,
 		bson.M{"_id": docId},
 		bson.M{
-			"name":             dish.Name,
-			"fat":              dish.Fat,
-			"ingredients":      dish.Ingredients,
-			"recipe":           dish.Recipe,
-			"calories":         dish.Calories,
-			"preparation-time": dish.PreparationTime,
+			"name":            updatedDish.Name,
+			"fat":             updatedDish.Fat,
+			"ingredients":     updatedDish.Ingredients,
+			"recipe":          updatedDish.Recipe,
+			"calories":        updatedDish.Calories,
+			"preparationTime": updatedDish.PreparationTime,
 		},
 	)
 	if err != nil {

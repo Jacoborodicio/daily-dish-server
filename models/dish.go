@@ -11,5 +11,5 @@ type Dish struct {
 	Ingredients     *string            `json:"ingredients"`
 	Recipe          *string            `json:"recipe"`
 	Calories        *float64           `json:"calories"`
-	PreparationTime *string            `json:"preparationtime"`
+	PreparationTime *string            `json:"preparationTime"`
 }
