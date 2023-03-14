@@ -1,4 +1,4 @@
-package utils
+package helpers
 
 // Reflection -> Reflect
 // Create map[Key_Type]Value_Type{} to use structs as map keys -> Useful to learn deeper structures

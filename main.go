@@ -18,6 +18,9 @@ func main() {
 	router.Use(gin.Logger())
 	router.Use(cors.Default())
 
+	routes.AuthRoutes(router)
+	routes.UserRoutes(router)
+
 	// Dishes endpoints
 	router.POST("/dishes", routes.AddDish)
 	router.GET("/dishes", routes.GetDishes)

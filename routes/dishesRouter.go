@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"time"
 
+	database "github.com/JacoboRodicio/daily-dish-server/database"
 	"github.com/JacoboRodicio/daily-dish-server/models"
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator/v10"
@@ -15,7 +16,7 @@ import (
 )
 
 var validate = validator.New()
-var dishCollection *mongo.Collection = OpenCollection(Client, "dishes")
+var dishCollection *mongo.Collection = database.OpenCollection(database.Client, "dishes")
 
 func AddDish(c *gin.Context) {
 	var ctx, cancel = context.WithTimeout(context.Background(), 100*time.Second)

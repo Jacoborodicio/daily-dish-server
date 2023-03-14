@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"time"
 
+	database "github.com/JacoboRodicio/daily-dish-server/database"
 	"github.com/JacoboRodicio/daily-dish-server/models"
 	"github.com/gin-gonic/gin"
 	"go.mongodb.org/mongo-driver/bson"
@@ -13,7 +14,7 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
-var categoryCollection *mongo.Collection = OpenCollection(Client, "categories")
+var categoryCollection *mongo.Collection = database.OpenCollection(database.Client, "categories")
 
 func AddCategory(c *gin.Context) {
 	var ctx, cancel = context.WithTimeout(context.Background(), 100*time.Second)
