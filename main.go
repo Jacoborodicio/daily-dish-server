@@ -34,5 +34,13 @@ func main() {
 	router.GET("/categories/:id/", routes.GetCategoryById)
 	router.PUT("/categories/:id", routes.UpdateCategory)
 	router.DELETE("/categories/:id", routes.DeleteCategory)
+
+	// Ingredients endpoints
+	router.POST("/ingredients", routes.AddIngredient)
+	router.GET("/ingredients", routes.GetIngredients)
+	router.GET("/ingredients/:id/", routes.GetingredientById)
+	router.PUT("/ingredients/:id", routes.Updateingredient)
+	router.DELETE("/ingredients/:id", routes.Deleteingredient)
 	router.Run(":" + port)
+
 }
