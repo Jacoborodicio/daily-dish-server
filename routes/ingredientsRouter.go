@@ -76,11 +76,11 @@ func GetingredientById(c *gin.Context) {
 }
 
 // Still needed to change the whole stuff related to the copied categories
-func Updateingredient(c *gin.Context) {
+func UpdateIngredient(c *gin.Context) {
 	ingredientID := c.Params.ByName("id")
 	docId, _ := primitive.ObjectIDFromHex(ingredientID)
 	ctx, cancel := context.WithTimeout(context.Background(), 100*time.Second)
-	var ingredient, updatedingredient models.Ingredient
+	var ingredient, updatedIngredient models.Ingredient
 	if err := c.BindJSON(&ingredient); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		fmt.Println(err)
@@ -92,7 +92,7 @@ func Updateingredient(c *gin.Context) {
 		fmt.Println(validateErr)
 		return
 	}
-	if err := ingredientCollection.FindOne(ctx, bson.M{"_id": docId}).Decode(&updatedingredient); err != nil {
+	if err := ingredientCollection.FindOne(ctx, bson.M{"_id": docId}).Decode(&updatedIngredient); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		fmt.Println(err)
 		return
@@ -100,13 +100,23 @@ func Updateingredient(c *gin.Context) {
 
 	// Just to update what we receive
 	if ingredient.Name != nil {
-		updatedingredient.Name = ingredient.Name
+		updatedIngredient.Name = ingredient.Name
 	}
+	if ingredient.Calories != nil {
+		updatedIngredient.Calories = ingredient.Calories
+	}
+	if ingredient.Price != nil {
+		updatedIngredient.Price = ingredient.Price
+	}
+
 	result, err := ingredientCollection.ReplaceOne(
 		ctx,
 		bson.M{"_id": docId},
 		bson.M{
-			"name": updatedingredient.Name,
+			"id":       updatedIngredient.ID,
+			"name":     updatedIngredient.Name,
+			"price":    updatedIngredient.Price,
+			"calories": updatedIngredient.Calories,
 		},
 	)
 	if err != nil {

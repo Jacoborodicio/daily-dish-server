@@ -125,6 +125,7 @@ func UpdateDish(c *gin.Context) {
 		ctx,
 		bson.M{"_id": docId},
 		bson.M{
+			"id":              updatedDish.ID,
 			"name":            updatedDish.Name,
 			"fat":             updatedDish.Fat,
 			"ingredients":     updatedDish.Ingredients,

@@ -110,6 +110,7 @@ func UpdateCategory(c *gin.Context) {
 		ctx,
 		bson.M{"_id": docId},
 		bson.M{
+			"id":          updatedCategory.ID,
 			"name":        updatedCategory.Name,
 			"description": updatedCategory.Description,
 			"favourite":   updatedCategory.Favourite,

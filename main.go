@@ -39,7 +39,7 @@ func main() {
 	router.POST("/ingredients", routes.AddIngredient)
 	router.GET("/ingredients", routes.GetIngredients)
 	router.GET("/ingredients/:id/", routes.GetingredientById)
-	router.PUT("/ingredients/:id", routes.Updateingredient)
+	router.PUT("/ingredients/:id", routes.UpdateIngredient)
 	router.DELETE("/ingredients/:id", routes.Deleteingredient)
 	router.Run(":" + port)
 
