@@ -13,6 +13,7 @@ import (
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
+  "strconv"
 )
 
 var validate = validator.New()
@@ -43,6 +44,31 @@ func AddDish(c *gin.Context) {
 	defer cancel()
 	c.JSON(http.StatusOK, result)
 }
+func GetDishesPagination(c *gin.Context) {
+	var ctx, cancel = context.WithTimeout(context.Background(), 100*time.Second)
+  page, _ := strconv.Atoi(c.Params.ByName("page"))
+  limit, _ := strconv.Atoi(c.Params.ByName("limit")) 
+  offset := (page - 1) * limit
+
+	var dishes []bson.M
+	// cursor, err := dishCollection.Find(ctx, bson.M{})
+	cursor, err := dishCollection.Find(ctx, bson.M{}).SetLimit(limit).SetSkip(offset)
+
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		fmt.Println(err)
+		return
+	}
+	if err = cursor.All(ctx, &dishes); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		fmt.Println(err)
+		return
+	}
+	defer cancel()
+	fmt.Println(dishes)
+	c.JSON(http.StatusOK, dishes)
+}
+
 func GetDishes(c *gin.Context) {
 	var ctx, cancel = context.WithTimeout(context.Background(), 100*time.Second)
 
