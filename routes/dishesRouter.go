@@ -45,42 +45,20 @@ func AddDish(c *gin.Context) {
 	defer cancel()
 	c.JSON(http.StatusOK, result)
 }
-func GetDishesPagination(c *gin.Context) {
-	var ctx, cancel = context.WithTimeout(context.Background(), 100*time.Second)
-  page, _ := strconv.ParseInt(c.Params.ByName("page"), 10, 64)
-  limit, _ := strconv.ParseInt(c.Params.ByName("limit"), 10, 64)
-  // offset will be always 0 for the first page, nothing to skip
-  offset := (page - 1) * limit
-  fmt.Println("limit", limit);
-  fmt.Println("page", page);
-  fmt.Println("offset", offset);
-	var dishes []bson.M
-  var options = options.Find()
-
-  // Limit by 10 documents only 
-  options.SetLimit(limit)
-  options.SetSkip(offset)
-  cursor, err := dishCollection.Find(ctx, bson.M{}, options)
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-		fmt.Println(err)
-		return
-	}
-	if err = cursor.All(ctx, &dishes); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-		fmt.Println(err)
-		return
-	}
-	defer cancel()
-	fmt.Println(dishes)
-	c.JSON(http.StatusOK, dishes)
-}
 
 func GetDishes(c *gin.Context) {
 	var ctx, cancel = context.WithTimeout(context.Background(), 100*time.Second)
-
+  page, _ := strconv.ParseInt(c.DefaultQuery("page", "1"), 10, 64)
+  limit, _ := strconv.ParseInt(c.DefaultQuery("limit", "0"), 10, 64)
+  offset := (page - 1) * limit
+  
+  options := options.Find()
+  options.SetLimit(limit)
+  options.SetSkip(offset)
+  
 	var dishes []bson.M
-	cursor, err := dishCollection.Find(ctx, bson.M{})
+  cursor, err := dishCollection.Find(ctx, bson.M{}, options)
+	// cursor, err := dishCollection.Find(ctx, bson.M{})
 
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})

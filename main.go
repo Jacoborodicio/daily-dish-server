@@ -24,9 +24,6 @@ func main() {
 	// Dishes endpoints
 	router.POST("/dishes", routes.AddDish)
 	router.GET("/dishes", routes.GetDishes)
-  // TODO: The page & limit should be read from query params
-  // Using route params only to test quickly
-  router.GET("/dishes/page/:page/:limit", routes.GetDishesPagination)
 	router.GET("/dishes/:id/", routes.GetDishById)
 	router.PUT("/dishes/:id", routes.UpdateDish)
 	router.DELETE("/dishes/:id", routes.DeleteDish)
