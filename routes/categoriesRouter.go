@@ -5,12 +5,14 @@ import (
 	"fmt"
 	"net/http"
 	"time"
+  "strconv"
 
 	database "github.com/JacoboRodicio/daily-dish-server/database"
 	"github.com/JacoboRodicio/daily-dish-server/models"
 	"github.com/gin-gonic/gin"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
+  "go.mongodb.org/mongo-driver/mongo/options"
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
@@ -43,8 +45,16 @@ func AddCategory(c *gin.Context) {
 }
 func GetCategories(c *gin.Context) {
 	var ctx, cancel = context.WithTimeout(context.Background(), 100*time.Second)
+  page, _ := strconv.ParseInt(c.DefaultQuery("page", "1"), 10, 64)
+  limit, _ := strconv.ParseInt(c.DefaultQuery("limit", "0"), 10, 64)
+  offset := (page - 1) * limit
+  
+  options := options.Find()
+  options.SetLimit(limit)
+  options.SetSkip(offset)
+  
 	var categories []bson.M
-	cursor, err := categoryCollection.Find(ctx, bson.M{})
+	cursor, err := categoryCollection.Find(ctx, bson.M{}, options)
 
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
