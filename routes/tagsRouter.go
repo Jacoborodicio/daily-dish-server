@@ -32,7 +32,7 @@ if validateErr != nil {
 		fmt.Println(validateErr)
 		return
 	}
-	tag.ID = primitive.NewObjectID()
+	// tag.ID = primitive.NewObjectID()
 	result, insertErr := tagCollection.InsertOne(ctx, tag)
 	if insertErr != nil {
 		msg := fmt.Sprintf("The new tag was not created")
@@ -114,7 +114,6 @@ func UpdateTag(c *gin.Context) {
 		ctx,
 		bson.M{"_id": docId},
 		bson.M{
-			"id":          updatedTag.ID,
 			"name":        updatedTag.Name,
 		},
 	)

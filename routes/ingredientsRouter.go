@@ -32,7 +32,6 @@ func AddIngredient(c *gin.Context) {
 		fmt.Println(validateErr)
 		return
 	}
-	ingredient.ID = primitive.NewObjectID()
 	result, insertErr := ingredientCollection.InsertOne(ctx, ingredient)
 	if insertErr != nil {
 		msg := fmt.Sprintf("The new ingredient was not created")
@@ -123,7 +122,6 @@ func UpdateIngredient(c *gin.Context) {
 		ctx,
 		bson.M{"_id": docId},
 		bson.M{
-			"id":       updatedIngredient.ID,
 			"name":     updatedIngredient.Name,
 			"price":    updatedIngredient.Price,
 			"calories": updatedIngredient.Calories,

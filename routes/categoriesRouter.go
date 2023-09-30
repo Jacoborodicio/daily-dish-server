@@ -32,7 +32,6 @@ func AddCategory(c *gin.Context) {
 		fmt.Println(validateErr)
 		return
 	}
-	category.ID = primitive.NewObjectID()
 	result, insertErr := categoryCollection.InsertOne(ctx, category)
 	if insertErr != nil {
 		msg := fmt.Sprintf("The new category was not created")
@@ -120,7 +119,6 @@ func UpdateCategory(c *gin.Context) {
 		ctx,
 		bson.M{"_id": docId},
 		bson.M{
-			"id":          updatedCategory.ID,
 			"name":        updatedCategory.Name,
 			"description": updatedCategory.Description,
 			"favourite":   updatedCategory.Favourite,

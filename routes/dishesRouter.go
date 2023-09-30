@@ -34,7 +34,6 @@ func AddDish(c *gin.Context) {
 		fmt.Println(validateErr)
 		return
 	}
-	dish.ID = primitive.NewObjectID()
 	result, insertErr := dishCollection.InsertOne(ctx, dish)
 	if insertErr != nil {
 		msg := fmt.Sprintf("The new dish was not created")
@@ -136,7 +135,6 @@ func UpdateDish(c *gin.Context) {
 		ctx,
 		bson.M{"_id": docId},
 		bson.M{
-			"id":              updatedDish.ID,
 			"name":            updatedDish.Name,
 			"fat":             updatedDish.Fat,
 			"ingredients":     updatedDish.Ingredients,
