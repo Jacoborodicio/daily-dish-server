@@ -38,8 +38,16 @@ func main() {
 	// Ingredients endpoints
 	router.POST("/ingredients", routes.AddIngredient)
 	router.GET("/ingredients", routes.GetIngredients)
-	router.GET("/ingredients/:id", routes.GetingredientById)
+	router.GET("/ingredients/:id", routes.GetIngredientById)
 	router.PUT("/ingredients/:id", routes.UpdateIngredient)
-	router.DELETE("/ingredients/:id", routes.Deleteingredient)
+	router.DELETE("/ingredients/:id", routes.DeleteIngredient)
+
+	// Tags endpoints
+	router.POST("/tags", routes.AddTag)
+	router.GET("/tags", routes.GetTags)
+	router.GET("/tags/:id", routes.GetTagById)
+	router.PUT("/tags/:id", routes.UpdateTag)
+	router.DELETE("/tags/:id", routes.DeleteTag)
+
 	router.Run(":" + port)
 }

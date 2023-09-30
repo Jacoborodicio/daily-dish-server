@@ -13,4 +13,6 @@ type Dish struct {
 	Calories        *float64           `json:"calories"`
 	PreparationTime *string            `json:"preparationTime"`
   // Category        *string            `json:"category"`
+  // Image           *string            `json:"image"`
+  // Steps           *string            `json:"steps"`
 }

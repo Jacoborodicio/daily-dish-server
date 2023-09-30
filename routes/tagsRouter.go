@@ -16,26 +16,26 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
-var ingredientCollection *mongo.Collection = database.OpenCollection(database.Client, "ingredients")
+var tagCollection *mongo.Collection = database.OpenCollection(database.Client, "tags")
 
-func AddIngredient(c *gin.Context) {
+func AddTag(c *gin.Context) {
 	var ctx, cancel = context.WithTimeout(context.Background(), 100*time.Second)
-	var ingredient models.Ingredient
-	if err := c.BindJSON(&ingredient); err != nil {
+	var tag models.Tag
+	if err := c.BindJSON(&tag); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		fmt.Println(err)
 		return
 	}
-	validateErr := validate.Struct(ingredient)
-	if validateErr != nil {
+	validateErr := validate.Struct(tag)
+if validateErr != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": validateErr.Error()})
 		fmt.Println(validateErr)
 		return
 	}
-	ingredient.ID = primitive.NewObjectID()
-	result, insertErr := ingredientCollection.InsertOne(ctx, ingredient)
+	tag.ID = primitive.NewObjectID()
+	result, insertErr := tagCollection.InsertOne(ctx, tag)
 	if insertErr != nil {
-		msg := fmt.Sprintf("The new ingredient was not created")
+		msg := fmt.Sprintf("The new tag was not created")
 		c.JSON(http.StatusInternalServerError, gin.H{"error": msg})
 		fmt.Println(insertErr)
 		return
@@ -43,7 +43,7 @@ func AddIngredient(c *gin.Context) {
 	defer cancel()
 	c.JSON(http.StatusOK, result)
 }
-func GetIngredients(c *gin.Context) {
+func GetTags(c *gin.Context) {
 	var ctx, cancel = context.WithTimeout(context.Background(), 100*time.Second)
   page, _ := strconv.ParseInt(c.DefaultQuery("page", "1"), 10, 64)
   limit, _ := strconv.ParseInt(c.DefaultQuery("limit", "0"), 10, 64)
@@ -53,80 +53,69 @@ func GetIngredients(c *gin.Context) {
   options.SetLimit(limit)
   options.SetSkip(offset)
   
-	var ingredients []bson.M
-	cursor, err := ingredientCollection.Find(ctx, bson.M{}, options)
+	var tags []bson.M
+	cursor, err := tagCollection.Find(ctx, bson.M{}, options)
 
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		fmt.Println(err)
 		return
 	}
-	if err = cursor.All(ctx, &ingredients); err != nil {
+	if err = cursor.All(ctx, &tags); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		fmt.Println(err)
 		return
 	}
 	defer cancel()
-	fmt.Println(ingredients)
-	c.JSON(http.StatusOK, ingredients)
+	fmt.Println(tags)
+	c.JSON(http.StatusOK, tags)
 }
-func GetIngredientById(c *gin.Context) {
-	ingredientID := c.Params.ByName("id")
-	docId, _ := primitive.ObjectIDFromHex(ingredientID)
+func GetTagById(c *gin.Context) {
+	tagID := c.Params.ByName("id")
+	docId, _ := primitive.ObjectIDFromHex(tagID)
 	var ctx, cancel = context.WithTimeout(context.Background(), 100*time.Second)
-	var ingredient bson.M
-	if err := ingredientCollection.FindOne(ctx, bson.M{"_id": docId}).Decode(&ingredient); err != nil {
+	var tag bson.M
+	if err := tagCollection.FindOne(ctx, bson.M{"_id": docId}).Decode(&tag); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		fmt.Println(err)
 		return
 	}
 	defer cancel()
-	fmt.Println(ingredient)
-	c.JSON(http.StatusOK, ingredient)
+	fmt.Println(tag)
+	c.JSON(http.StatusOK, tag)
 }
-
-// Still needed to change the whole stuff related to the copied categories
-func UpdateIngredient(c *gin.Context) {
-	ingredientID := c.Params.ByName("id")
-	docId, _ := primitive.ObjectIDFromHex(ingredientID)
+func UpdateTag(c *gin.Context) {
+	tagID := c.Params.ByName("id")
+	docId, _ := primitive.ObjectIDFromHex(tagID)
 	ctx, cancel := context.WithTimeout(context.Background(), 100*time.Second)
-	var ingredient, updatedIngredient models.Ingredient
-	if err := c.BindJSON(&ingredient); err != nil {
+	var tag, updatedTag models.Tag
+	if err := c.BindJSON(&tag); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		fmt.Println(err)
 		return
 	}
-	validateErr := validate.Struct(ingredient)
+	validateErr := validate.Struct(tag)
 	if validateErr != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": validateErr.Error()})
 		fmt.Println(validateErr)
 		return
 	}
-	if err := ingredientCollection.FindOne(ctx, bson.M{"_id": docId}).Decode(&updatedIngredient); err != nil {
+	if err := tagCollection.FindOne(ctx, bson.M{"_id": docId}).Decode(&updatedTag); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		fmt.Println(err)
 		return
 	}
 
 	// Just to update what we receive
-	if ingredient.Name != nil {
-		updatedIngredient.Name = ingredient.Name
+	if tag.Name != nil {
+		updatedTag.Name = tag.Name
 	}
-	if ingredient.Calories != nil {
-		updatedIngredient.Calories = ingredient.Calories
-	}
-	if ingredient.Price != nil {
-		updatedIngredient.Price = ingredient.Price
-	}
-
-	result, err := ingredientCollection.ReplaceOne(
+	result, err := tagCollection.ReplaceOne(
 		ctx,
 		bson.M{"_id": docId},
 		bson.M{
-			"id":       updatedIngredient.ID,
-			"name":     updatedIngredient.Name,
-			"price":    updatedIngredient.Price,
-			"calories": updatedIngredient.Calories,
+			"id":          updatedTag.ID,
+			"name":        updatedTag.Name,
 		},
 	)
 	if err != nil {
@@ -137,11 +126,11 @@ func UpdateIngredient(c *gin.Context) {
 	defer cancel()
 	c.JSON(http.StatusOK, result.ModifiedCount)
 }
-func DeleteIngredient(c *gin.Context) {
-	ingredientId := c.Params.ByName("id")
-	docId, _ := primitive.ObjectIDFromHex(ingredientId)
+func DeleteTag(c *gin.Context) {
+	tagId := c.Params.ByName("id")
+	docId, _ := primitive.ObjectIDFromHex(tagId)
 	var ctx, cancel = context.WithTimeout(context.Background(), 100*time.Second)
-	result, err := ingredientCollection.DeleteOne(ctx, bson.M{"_id": docId})
+	result, err := tagCollection.DeleteOne(ctx, bson.M{"_id": docId})
 
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
