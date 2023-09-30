@@ -130,6 +130,9 @@ func UpdateDish(c *gin.Context) {
 	if dish.PreparationTime != nil {
 		updatedDish.PreparationTime = dish.PreparationTime
 	}
+  if dish.Tags != nil {
+    updatedDish.Tags = dish.Tags
+  }
 
 	result, err := dishCollection.ReplaceOne(
 		ctx,
@@ -141,6 +144,7 @@ func UpdateDish(c *gin.Context) {
 			"recipe":          updatedDish.Recipe,
 			"calories":        updatedDish.Calories,
 			"preparationTime": updatedDish.PreparationTime,
+      "tags":            updatedDish.Tags,
 		},
 	)
 	if err != nil {

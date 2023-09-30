@@ -7,6 +7,7 @@ type Dish struct {
 	Recipe          *string            `json:"recipe"`
 	Calories        *float64           `json:"calories"`
 	PreparationTime *string            `json:"preparationTime"`
+  Tags            *[]Tag             `json:tags` 
   // Category        *string            `json:"category"`
   // Image           *string            `json:"image"`
   // Steps           *string            `json:"steps"`
