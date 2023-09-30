@@ -134,6 +134,10 @@ func UpdateDish(c *gin.Context) {
     updatedDish.Tags = dish.Tags
   }
 
+  if dish.Categories != nil {
+    updatedDish.Categories = dish.Categories
+  }
+
 	result, err := dishCollection.ReplaceOne(
 		ctx,
 		bson.M{"_id": docId},
@@ -144,6 +148,7 @@ func UpdateDish(c *gin.Context) {
 			"recipe":          updatedDish.Recipe,
 			"calories":        updatedDish.Calories,
 			"preparationTime": updatedDish.PreparationTime,
+      "categories":      updatedDish.Categories,
       "tags":            updatedDish.Tags,
 		},
 	)
