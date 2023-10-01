@@ -19,6 +19,7 @@ import (
 
 var validate = validator.New()
 var dishCollection *mongo.Collection = database.OpenCollection(database.Client, "dishes")
+var ingredientsColelction *mongo.Collection = database.OpenCollection(database.Client, "ingredients")
 
 func AddDish(c *gin.Context) {
 	var ctx, cancel = context.WithTimeout(context.Background(), 100*time.Second)
@@ -57,7 +58,6 @@ func GetDishes(c *gin.Context) {
   
 	var dishes []bson.M
   cursor, err := dishCollection.Find(ctx, bson.M{}, options)
-	// cursor, err := dishCollection.Find(ctx, bson.M{})
 
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
@@ -77,15 +77,36 @@ func GetDishById(c *gin.Context) {
 	dishID := c.Params.ByName("id")
 	docId, _ := primitive.ObjectIDFromHex(dishID)
 	var ctx, cancel = context.WithTimeout(context.Background(), 100*time.Second)
-	var dish bson.M
-	if err := dishCollection.FindOne(ctx, bson.M{"_id": docId}).Decode(&dish); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-		fmt.Println(err)
-		return
-	}
-	defer cancel()
-	fmt.Println(dish)
-	c.JSON(http.StatusOK, dish)
+	var dish []bson.M
+
+  pipeline := []bson.M{
+   bson.M{"$lookup": bson.M{
+   "from": "ingredients",
+   "localField": "ingredients",
+   "foreignField": "_id",
+   "as": "ingredients",
+   }},
+   bson.M{"$lookup": bson.M{
+   "from": "categories",
+   "localField": "categories",
+   "foreignField": "_id",
+   "as": "categories",
+   }},
+   bson.M{"$match": bson.M{"_id": docId}},
+   }
+   cursor, err := dishCollection.Aggregate(ctx, pipeline)
+   if err != nil {
+   c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+   return
+   }
+   if err = cursor.All(ctx, &dish); err != nil {
+   c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+   fmt.Println(err)
+   return
+   }
+  aggregatedDish := dish[0];
+   defer cancel()
+  c.JSON(http.StatusOK, aggregatedDish)
 }
 
 func UpdateDish(c *gin.Context) {
