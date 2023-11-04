@@ -6,7 +6,9 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+const api = "/daily-dishes/api/v1"
+
 func AuthRoutes(incomingRoutes *gin.Engine) {
-	incomingRoutes.POST("users/signup", controller.Signup())
-	incomingRoutes.POST("users/login", controller.Login())
+	incomingRoutes.POST(api+"users/signup", controller.Signup())
+	incomingRoutes.POST(api+"users/login", controller.Login())
 }

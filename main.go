@@ -21,33 +21,34 @@ func main() {
 	routes.AuthRoutes(router)
 	routes.UserRoutes(router)
 
+	const api = "/daily-dishes/api/v1"
 	// Dishes endpoints
-	router.POST("/dishes", routes.AddDish)
-	router.GET("/dishes", routes.GetDishes)
-	router.GET("/dishes/:id", routes.GetDishById)
-	router.PUT("/dishes/:id", routes.UpdateDish)
-	router.DELETE("/dishes/:id", routes.DeleteDish)
+	router.POST(api+"/dishes", routes.AddDish)
+	router.GET(api+"/dishes", routes.GetDishes)
+	router.GET(api+"/dishes/:id", routes.GetDishById)
+	router.PUT(api+"/dishes/:id", routes.UpdateDish)
+	router.DELETE(api+"/dishes/:id", routes.DeleteDish)
 
 	// Categories endpoints
-	router.POST("/categories", routes.AddCategory)
-	router.GET("/categories", routes.GetCategories)
-	router.GET("/categories/:id", routes.GetCategoryById)
-	router.PUT("/categories/:id", routes.UpdateCategory)
-	router.DELETE("/categories/:id", routes.DeleteCategory)
+	router.POST(api+"/categories", routes.AddCategory)
+	router.GET(api+"/categories", routes.GetCategories)
+	router.GET(api+"/categories/:id", routes.GetCategoryById)
+	router.PUT(api+"/categories/:id", routes.UpdateCategory)
+	router.DELETE(api+"/categories/:id", routes.DeleteCategory)
 
 	// Ingredients endpoints
-	router.POST("/ingredients", routes.AddIngredient)
-	router.GET("/ingredients", routes.GetIngredients)
-	router.GET("/ingredients/:id", routes.GetIngredientById)
-	router.PUT("/ingredients/:id", routes.UpdateIngredient)
-	router.DELETE("/ingredients/:id", routes.DeleteIngredient)
+	router.POST(api+"/ingredients", routes.AddIngredient)
+	router.GET(api+"/ingredients", routes.GetIngredients)
+	router.GET(api+"/ingredients/:id", routes.GetIngredientById)
+	router.PUT(api+"/ingredients/:id", routes.UpdateIngredient)
+	router.DELETE(api+"/ingredients/:id", routes.DeleteIngredient)
 
 	// Tags endpoints
-	router.POST("/tags", routes.AddTag)
-	router.GET("/tags", routes.GetTags)
-	router.GET("/tags/:id", routes.GetTagById)
-	router.PUT("/tags/:id", routes.UpdateTag)
-	router.DELETE("/tags/:id", routes.DeleteTag)
+	router.POST(api+"/tags", routes.AddTag)
+	router.GET(api+"/tags", routes.GetTags)
+	router.GET(api+"/tags/:id", routes.GetTagById)
+	router.PUT(api+"/tags/:id", routes.UpdateTag)
+	router.DELETE(api+"/tags/:id", routes.DeleteTag)
 
 	router.Run(":" + port)
 }
