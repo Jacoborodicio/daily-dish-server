@@ -21,7 +21,7 @@ func main() {
 	routes.AuthRoutes(router)
 	routes.UserRoutes(router)
 
-	const api = "/daily-dishes/api/v1"
+	const api = "/daily-dishes/api/v1/"
 	// Dishes endpoints
 	router.POST(api+"/dishes", routes.AddDish)
 	router.GET(api+"/dishes", routes.GetDishes)
