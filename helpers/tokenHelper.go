@@ -16,11 +16,11 @@ import (
 )
 
 type SignedDetails struct {
-	Email      string
-	First_name string
-	Last_name  string
-	Uid        string
-	User_type  string
+	Email     string
+	Firstname string
+	Lastname  string
+	Uid       string
+	Usertype  string
 	jwt.StandardClaims
 }
 
@@ -29,11 +29,11 @@ var SECRET_KEY = os.Getenv("SECRET_KEY")
 
 func GenerateAllTokens(email string, firstName string, lastName string, userType string, uid string) (signedToken string, signedRefreshToken string, err error) {
 	claims := &SignedDetails{
-		Email:      email,
-		First_name: firstName,
-		Last_name:  lastName,
-		User_type:  userType,
-		Uid:        uid,
+		Email:     email,
+		Firstname: firstName,
+		Lastname:  lastName,
+		Usertype:  userType,
+		Uid:       uid,
 		StandardClaims: jwt.StandardClaims{
 			ExpiresAt: time.Now().Local().Add(time.Hour * time.Duration(24)).Unix(),
 		},
@@ -57,11 +57,11 @@ func UpdateAllTokens(signedToken string, signedRefreshToken string, userId strin
 	var ctx, cancel = context.WithTimeout(context.Background(), 100*time.Second)
 	var updateObject primitive.D
 	updateObject = append(updateObject, bson.E{"token", signedToken})
-	updateObject = append(updateObject, bson.E{"refresh_token", signedRefreshToken})
-	Updated_at, _ := time.Parse(time.RFC3339, time.Now().Format(time.RFC3339))
-	updateObject = append(updateObject, bson.E{"updated_at", Updated_at})
+	updateObject = append(updateObject, bson.E{"refreshtoken", signedRefreshToken})
+	Updatedat, _ := time.Parse(time.RFC3339, time.Now().Format(time.RFC3339))
+	updateObject = append(updateObject, bson.E{"updatedat", Updatedat})
 	upsert := true
-	filter := bson.M{"user_id": userId}
+	filter := bson.M{"userid": userId}
 	opt := options.UpdateOptions{
 		Upsert: &upsert,
 	}

@@ -20,6 +20,11 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
+type ChangePasswordStruct struct {
+	Oldpassword *string
+	Newpassword *string
+}
+
 var userCollection *mongo.Collection = dababase.OpenCollection(dababase.Client, "user")
 var validate = validator.New()
 
@@ -48,6 +53,7 @@ func Signup() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		var ctx, cancel = context.WithTimeout(context.Background(), 100*time.Second)
 		var user models.User
+		defer cancel()
 		if err := c.BindJSON(&user); err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 			return
@@ -57,7 +63,6 @@ func Signup() gin.HandlerFunc {
 			c.JSON(http.StatusBadRequest, gin.H{"error": validationErr.Error()})
 			return
 		}
-
 		count, emailErr := userCollection.CountDocuments(ctx, bson.M{"email": user.Email})
 		defer cancel()
 		if emailErr != nil {
@@ -98,9 +103,8 @@ func Signup() gin.HandlerFunc {
 func Login() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		var ctx, cancel = context.WithTimeout(context.Background(), 100*time.Second)
-		var user models.User
-		var foundUser models.User
-
+		defer cancel()
+		var user, foundUser models.User
 		if err := c.BindJSON(&user); err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 			return
@@ -114,7 +118,7 @@ func Login() gin.HandlerFunc {
 		passwordIsValid, msg := VerifyPassword(*user.Password, *foundUser.Password)
 		defer cancel()
 		if passwordIsValid != true {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": msg})
+			c.JSON(http.StatusInternalServerError, gin.H{"error in password check": msg})
 			return
 		}
 
@@ -123,7 +127,7 @@ func Login() gin.HandlerFunc {
 		}
 		token, refreshToken, _ := helpers.GenerateAllTokens(*foundUser.Email, *foundUser.FirstName, *foundUser.LastName, *foundUser.UserType, *&foundUser.UserID)
 		helpers.UpdateAllTokens(token, refreshToken, foundUser.UserID)
-		err = userCollection.FindOne(ctx, bson.M{"user_id": foundUser.UserID}).Decode(&foundUser)
+		err = userCollection.FindOne(ctx, bson.M{"userid": foundUser.UserID}).Decode(&foundUser)
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
@@ -152,7 +156,6 @@ func GetUsers() gin.HandlerFunc {
 		startIndex := (page - 1) * recordPerPage
 		startIndex, err = strconv.Atoi(c.Query("startIndex"))
 
-		matchStage := bson.D{{Key: "$match", Value: bson.D{{}}}}
 		groupStage := bson.D{
 			{Key: "$group", Value: bson.D{
 				{Key: "_id", Value: bson.D{{Key: "_id", Value: "null"}}},
@@ -169,7 +172,7 @@ func GetUsers() gin.HandlerFunc {
 			}},
 		}
 		result, err := userCollection.Aggregate(ctx, mongo.Pipeline{
-			matchStage, groupStage, projectState,
+			groupStage, projectState,
 		})
 		defer cancel()
 		if err != nil {
@@ -180,25 +183,166 @@ func GetUsers() gin.HandlerFunc {
 		if err = result.All(ctx, &allUsers); err != nil {
 			log.Fatal(err)
 		}
-		c.JSON(http.StatusOK, allUsers[0])
+		if len(allUsers) == 0 {
+			c.JSON(http.StatusOK, []models.User{})
+		} else {
+			c.JSON(http.StatusOK, allUsers[0])
+		}
 	}
 }
 
 func GetUser() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		userID := c.Param("user_id")
+		userID := c.Param("userid")
 		if err := helpers.MatchUserTypeToUid(c, userID); err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 			return
 		}
 		var ctx, cancel = context.WithTimeout(context.Background(), 100*time.Second)
 		var user models.User
-		err := userCollection.FindOne(ctx, bson.M{"user_id": userID}).Decode(&user)
+		err := userCollection.FindOne(ctx, bson.M{"userid": userID}).Decode(&user)
 		defer cancel()
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
 		}
 		c.JSON(http.StatusOK, user)
+	}
+}
+
+func ChangePassword() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		userId := c.Param("userid")
+		docId, _ := primitive.ObjectIDFromHex(userId)
+
+		var ctx, cancel = context.WithTimeout(context.Background(), 100*time.Second)
+		defer cancel()
+		var updatedUser models.User
+		var changePasswordStruct ChangePasswordStruct
+		if err := c.BindJSON(&changePasswordStruct); err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			fmt.Println("err binding json: ", err)
+			return
+		}
+		err := userCollection.FindOne(ctx, bson.M{"_id": docId}).Decode(&updatedUser)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		}
+		passwordIsValid, msg := VerifyPassword(*changePasswordStruct.Oldpassword, *updatedUser.Password)
+		if passwordIsValid != true {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": msg})
+			return
+		}
+		*updatedUser.Password = HashPassword(*changePasswordStruct.Newpassword)
+
+		updatedTime, _ := time.Parse(time.RFC3339, time.Now().Format(time.RFC3339))
+		result, err := userCollection.ReplaceOne(
+			ctx,
+			bson.M{"_id": docId},
+			bson.M{
+				"firstname":    updatedUser.FirstName,
+				"lastname":     updatedUser.LastName,
+				"email":        updatedUser.Email,
+				"phone":        updatedUser.Phone,
+				"password":     updatedUser.Password,
+				"updatedat":    updatedTime,
+				"token":        updatedUser.Token,
+				"refreshtoken": updatedUser.RefreshToken,
+				"usertype":     updatedUser.UserType,
+				"userid":       updatedUser.UserID,
+				"createdat":    updatedUser.CreatedAt,
+			})
+
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			fmt.Println(err)
+			return
+		}
+		c.JSON(http.StatusOK, result.ModifiedCount)
+	}
+}
+
+func UpdateUser() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		userID := c.Param("userid")
+		docId, _ := primitive.ObjectIDFromHex(userID)
+
+		var ctx, cancel = context.WithTimeout(context.Background(), 100*time.Second)
+		defer cancel()
+		var user, updatedUser models.User
+		if err := c.BindJSON(&user); err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			fmt.Println("error updating user: ", err)
+			return
+		}
+		err := userCollection.FindOne(ctx, bson.M{"_id": docId}).Decode(&updatedUser)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		}
+		if user.FirstName != nil {
+			updatedUser.FirstName = user.FirstName
+		}
+		if user.LastName != nil {
+			updatedUser.LastName = user.LastName
+		}
+		if user.Email != nil {
+			updatedUser.Email = user.Email
+		}
+		if user.Phone != nil {
+			updatedUser.Phone = user.Phone
+		}
+		if user.Password != nil {
+			password := HashPassword(*user.Password)
+			updatedUser.Password = &password
+		}
+		if user.UserType != nil {
+			updatedUser.UserType = user.UserType
+		}
+		if user.UserID != "" {
+			updatedUser.UserID = user.UserID
+		}
+
+		updatedTime, _ := time.Parse(time.RFC3339, time.Now().Format(time.RFC3339))
+		result, err := userCollection.ReplaceOne(
+			ctx,
+			bson.M{"_id": docId},
+			bson.M{
+				"firstname":    updatedUser.FirstName,
+				"lastname":     updatedUser.LastName,
+				"email":        updatedUser.Email,
+				"phone":        updatedUser.Phone,
+				"password":     updatedUser.Password,
+				"updatedat":    updatedTime,
+				"token":        updatedUser.Token,
+				"refreshtoken": updatedUser.RefreshToken,
+				"usertype":     updatedUser.UserType,
+				"userid":       updatedUser.UserID,
+				"createdat":    updatedUser.CreatedAt,
+			},
+		)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			fmt.Println(err)
+			return
+		}
+		defer cancel()
+		c.JSON(http.StatusOK, result.ModifiedCount)
+	}
+}
+
+func DeleteUser() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		userID := c.Param("userid")
+		docId, _ := primitive.ObjectIDFromHex(userID)
+		var ctx, cancel = context.WithTimeout(context.Background(), 100*time.Second)
+		defer cancel()
+		result, err := userCollection.DeleteOne(ctx, bson.M{"_id": docId})
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		}
+		defer cancel()
+		c.JSON(http.StatusOK, result.DeletedCount)
 	}
 }

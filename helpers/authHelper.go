@@ -8,7 +8,7 @@ import (
 
 // TODO: Is is a named return? i.e. can we save the lines 14 & 16? CHECK!
 func CheckUserType(c *gin.Context, role string) (err error) {
-	userType := c.GetString("user_type")
+	userType := c.GetString("usertype")
 	err = nil
 	if userType != role {
 		err = errors.New("Unauthorized to access this resource")
@@ -19,7 +19,7 @@ func CheckUserType(c *gin.Context, role string) (err error) {
 
 // TODO: Is is a named return? i.e. can we save the line 29? CHECK!
 func MatchUserTypeToUid(c *gin.Context, userID string) (err error) {
-	userType := c.GetString("user_type")
+	userType := c.GetString("usertype")
 	uid := c.GetString("uid")
 	err = nil
 
