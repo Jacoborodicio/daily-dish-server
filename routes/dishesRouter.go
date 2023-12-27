@@ -64,7 +64,6 @@ func GetDishes(c *gin.Context) {
 		filter = bson.M{"userid": userId}
 	} else {
 		filter = bson.M{"public": true}
-		// filter = bson.M{}
 	}
 	cursor, err := dishCollection.Find(ctx, filter, options)
 
@@ -105,6 +104,12 @@ func GetDishById(c *gin.Context) {
 			"localField":   "categories",
 			"foreignField": "_id",
 			"as":           "categories",
+		}},
+		bson.M{"$lookup": bson.M{
+			"from":         "tags",
+			"localField":   "tags",
+			"foreignField": "_id",
+			"as":           "tags",
 		}},
 		bson.M{"$match": bson.M{"_id": docId}},
 	}

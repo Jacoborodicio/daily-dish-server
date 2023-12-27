@@ -11,7 +11,7 @@ type Dish struct {
 	Recipe          *string               `json:"recipe"`
 	Calories        *float64              `json:"calories"`
 	PreparationTime *string               `json:"preparationTime"`
-	Tags            *[]Tag                `json:"tags"`
+	Tags            *[]primitive.ObjectID `json:"tags"`
 	Categories      *[]primitive.ObjectID `bson:"categories"`
 	Public          *bool                 `json:"public"`
 	UserID          *string               `json:"userid"`
