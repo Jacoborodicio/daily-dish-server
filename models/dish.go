@@ -15,6 +15,7 @@ type Dish struct {
 	Categories      *[]primitive.ObjectID `bson:"categories"`
 	Public          *bool                 `json:"public"`
 	UserID          *string               `json:"userid"`
+	AudioURL        *string               `json:"audioUrl"`
 	// Image           *string            `json:"image"`
 	// Steps           *string            `json:"steps"`
 }

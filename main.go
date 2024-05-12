@@ -24,6 +24,9 @@ func main() {
 	const api = "/daily-dishes/api/v1/"
 	// Dishes endpoints
 	router.POST(api+"/dishes", routes.AddDish)
+	router.POST(api+"/dishes/:id/audio", routes.HandleAudioUpload)
+	router.GET(api+"/dishes/:id/audio/:fileName", routes.HandleAudioDownload)
+	router.DELETE(api+"/dishes/:id/audio", routes.DeleteAudio)
 	router.GET(api+"/dishes", routes.GetDishes)
 	router.GET(api+"/dishes/:id", routes.GetDishById)
 	router.PUT(api+"/dishes/:id", routes.UpdateDish)

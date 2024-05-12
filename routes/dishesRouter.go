@@ -3,8 +3,13 @@ package routes
 import (
 	"context"
 	"fmt"
+	"io"
 	"net/http"
+	"os"
+	"path/filepath"
 	"time"
+
+	"strconv"
 
 	database "github.com/JacoboRodicio/daily-dish-server/database"
 	"github.com/JacoboRodicio/daily-dish-server/models"
@@ -14,7 +19,6 @@ import (
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
-	"strconv"
 )
 
 var validate = validator.New()
@@ -222,4 +226,172 @@ func DeleteDish(c *gin.Context) {
 		return
 	}
 	c.JSON(http.StatusOK, result.DeletedCount)
+}
+
+func HandleAudioUpload(c *gin.Context) {
+	dishId := c.Params.ByName("id")
+	fmt.Println("Dish ID: ", dishId)
+	docId, _ := primitive.ObjectIDFromHex(dishId)
+	ctx, cancel := context.WithTimeout(context.Background(), 100*time.Second)
+	defer cancel()
+
+	// Obtiene el archivo de audio del formulario
+	file, _, err := c.Request.FormFile("audio")
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "No se pudo obtener el archivo de audio"})
+		return
+	}
+	defer file.Close()
+
+	// Define la carpeta de destino para guardar el archivo de audio
+	uploadDir := "./uploads/" + dishId // Puedes definir cualquier carpeta aquí
+	_, err = os.Stat(uploadDir)
+
+	if os.IsNotExist(err) {
+		// Si la ruta no existe, crea la estructura de carpetas
+		if err := os.MkdirAll(uploadDir, 0755); err != nil {
+			fmt.Println("Error al crear las carpetas:", err)
+			return
+		}
+		fmt.Println("Estructura de carpetas creada con éxito en:", uploadDir)
+	} else if err != nil {
+		// Si ocurre otro tipo de error al verificar la ruta, imprime el error
+		fmt.Println("Error al verificar la existencia de la ruta:", err)
+		return
+	} else {
+		// Si la ruta ya existe, imprime un mensaje indicándolo
+		fmt.Println("La ruta de carpetas ya existe:", uploadDir)
+	}
+
+	// fileName := time.Now().Format("2006-01-02 15:04:05") + ".mp3"
+	fileName := time.Now().Format("2006-01-02_15:04:05") + ".mp3"
+	fmt.Println("File name: ", fileName)
+	// Crea un nuevo archivo en la carpeta de uploads
+	newFile, err := os.Create(filepath.Join(uploadDir, fileName))
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "No se pudo crear el archivo en el servidor"})
+		return
+	}
+	defer newFile.Close()
+
+	var updatedDish models.Dish
+	// Getting the old dish
+	if err := dishCollection.FindOne(ctx, bson.M{"_id": docId}).Decode(&updatedDish); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		fmt.Println(err)
+		return
+	}
+	fmt.Printf("UpdatedDish: %v\n", updatedDish)
+
+	result, err := dishCollection.ReplaceOne(
+		ctx,
+		bson.M{"_id": docId},
+		bson.M{
+			"name":            updatedDish.Name,
+			"fat":             updatedDish.Fat,
+			"ingredients":     updatedDish.Ingredients,
+			"recipe":          updatedDish.Recipe,
+			"calories":        updatedDish.Calories,
+			"preparationTime": updatedDish.PreparationTime,
+			"categories":      updatedDish.Categories,
+			"tags":            updatedDish.Tags,
+			"public":          updatedDish.Public,
+			"userid":          updatedDish.UserID,
+			"audioUrl":        fileName,
+		},
+	)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		fmt.Println(err)
+		return
+	}
+	// Copia el contenido del archivo de audio al nuevo archivo en la carpeta de uploads
+	_, err = io.Copy(newFile, file)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "No se pudo copiar el contenido del archivo"})
+		return
+	}
+
+	// Responde al cliente con un mensaje de éxito
+	c.JSON(http.StatusOK, result.ModifiedCount)
+}
+
+func HandleAudioDownload(c *gin.Context) {
+	dishId := c.Params.ByName("id")
+	fmt.Println("Dish ID: ", dishId)
+
+	// Obtiene el nombre del archivo de la URL
+	fileName := c.Param("fileName")
+
+	// Define la ruta absoluta del directorio donde se encuentran los archivos de audio
+	dir := "./uploads/" + dishId // Cambia esto según la ruta donde se encuentren tus archivos de audio
+
+	// Une la ruta del directorio con el nombre del archivo
+	filepath := filepath.Join(dir, fileName)
+
+	// Verifica si el archivo existe
+	_, err := os.Stat(filepath)
+	if os.IsNotExist(err) {
+		// Si el archivo no existe, responde con un error 404
+		c.JSON(http.StatusNotFound, gin.H{"error": "El archivo de audio no existe"})
+		return
+	}
+
+	// Sirve el archivo de audio estático
+	c.File(filepath)
+
+}
+
+func DeleteAudio(c *gin.Context) {
+	dishId := c.Params.ByName("id")
+	docId, _ := primitive.ObjectIDFromHex(dishId)
+	ctx, cancel := context.WithTimeout(context.Background(), 100*time.Second)
+	defer cancel()
+
+	var updatedDish models.Dish
+	// Getting the old dish
+	if err := dishCollection.FindOne(ctx, bson.M{"_id": docId}).Decode(&updatedDish); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		fmt.Println(err)
+		return
+	}
+
+	fileName := updatedDish.AudioURL
+	fmt.Println("fileName: ", fileName)
+
+	result, err := dishCollection.ReplaceOne(
+		ctx,
+		bson.M{"_id": docId},
+		bson.M{
+			"name":            updatedDish.Name,
+			"fat":             updatedDish.Fat,
+			"ingredients":     updatedDish.Ingredients,
+			"recipe":          updatedDish.Recipe,
+			"calories":        updatedDish.Calories,
+			"preparationTime": updatedDish.PreparationTime,
+			"categories":      updatedDish.Categories,
+			"tags":            updatedDish.Tags,
+			"public":          updatedDish.Public,
+			"userid":          updatedDish.UserID,
+			"audioUrl":        "",
+		},
+	)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		fmt.Println(err)
+		return
+	}
+	// Copia el contenido del archivo de audio al nuevo archivo en la carpeta de uploads
+	if err := os.Remove("./uploads/" + dishId + "/" + *fileName); err != nil {
+		// Si hay un error al eliminar el archivo, responde con un error 500
+		c.JSON(http.StatusInternalServerError, gin.H{"error": fmt.Sprintf("Error al eliminar el archivo: %s", err.Error())})
+		return
+	}
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "No se pudo copiar el contenido del archivo"})
+		return
+	}
+
+	// Responde al cliente con un mensaje de éxito
+	c.JSON(http.StatusOK, result.ModifiedCount)
 }
