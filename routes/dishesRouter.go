@@ -235,6 +235,15 @@ func HandleAudioUpload(c *gin.Context) {
 	ctx, cancel := context.WithTimeout(context.Background(), 100*time.Second)
 	defer cancel()
 
+	// Getting the old dish
+	var updatedDish models.Dish
+	if err := dishCollection.FindOne(ctx, bson.M{"_id": docId}).Decode(&updatedDish); err != nil {
+		fmt.Print("Error getting the old dish")
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		fmt.Println(err)
+		return
+	}
+	fmt.Printf("UpdatedDish: %v\n", updatedDish)
 	// Obtiene el archivo de audio del formulario
 	file, _, err := c.Request.FormFile("audio")
 	if err != nil {
@@ -274,15 +283,6 @@ func HandleAudioUpload(c *gin.Context) {
 	}
 	defer newFile.Close()
 
-	var updatedDish models.Dish
-	// Getting the old dish
-	if err := dishCollection.FindOne(ctx, bson.M{"_id": docId}).Decode(&updatedDish); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-		fmt.Println(err)
-		return
-	}
-	fmt.Printf("UpdatedDish: %v\n", updatedDish)
-
 	result, err := dishCollection.ReplaceOne(
 		ctx,
 		bson.M{"_id": docId},
@@ -293,8 +293,8 @@ func HandleAudioUpload(c *gin.Context) {
 			"recipe":          updatedDish.Recipe,
 			"calories":        updatedDish.Calories,
 			"preparationTime": updatedDish.PreparationTime,
-			"categories":      updatedDish.Categories,
 			"tags":            updatedDish.Tags,
+			"categories":      updatedDish.Categories,
 			"public":          updatedDish.Public,
 			"userid":          updatedDish.UserID,
 			"audioUrl":        fileName,
