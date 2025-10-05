@@ -53,5 +53,12 @@ func main() {
 	router.PUT(api+"/tags/:id", routes.UpdateTag)
 	router.DELETE(api+"/tags/:id", routes.DeleteTag)
 
+	// Goals endpoints
+	router.POST(api+"/goals", routes.AddGoal)
+	router.GET(api+"/goals", routes.GetGoals)
+	router.GET(api+"/goals/:id", routes.GetGoalById)
+	router.PUT(api+"/goals/:id", routes.UpdateGoal)
+	router.DELETE(api+"/goals/:id", routes.DeleteGoal)
+
 	router.Run(":" + port)
 }
