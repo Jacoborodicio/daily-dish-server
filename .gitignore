@@ -1,0 +1,15 @@
+# Compiled binary
+src/daily-dish-server
+
+# Go build cache
+vendor/
+
+# Environment files
+.env
+*.env
+
+# Backups
+mongo-backup/
+
+# OS
+.DS_Store

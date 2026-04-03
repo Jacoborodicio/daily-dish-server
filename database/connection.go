@@ -5,14 +5,17 @@ import (
 	"fmt"
 	"log"
 	"time"
+	"os"
 
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
 func DBinstance() *mongo.Client {
-	MongoDb := "mongodb://localhost:27017/dishesdb"
-
+	MongoDb := os.Getenv("MONGODB_URI")
+	if MongoDb == "" {
+	    MongoDb = "mongodb://localhost:27017/dishesdb"
+	}
 	client, err := mongo.NewClient(options.Client().ApplyURI(MongoDb))
 	if err != nil {
 		log.Fatal(err)

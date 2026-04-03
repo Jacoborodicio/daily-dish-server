@@ -1,0 +1,27 @@
+services:
+  mongodb:
+    image: mongo:6
+    restart: always
+    volumes:
+      - mongodb_data:/data/db
+    ports:
+      - "27017:27017"
+
+  daily-dish:
+    image: golang:1.20-alpine
+    restart: always
+    working_dir: /app
+    volumes:
+      - /mnt/data/daily-dish/src:/app
+    ports:
+      - "8001:8000"
+    environment:
+      - PORT=8000
+      - MONGODB_URI=mongodb://mongodb:27017/dishesdb
+      - SECRET_KEY=gQSB8Uh/K/ws8q5Z00sNfXCYNvZ8c0+j2vie/zwSAWQ=
+    depends_on:
+      - mongodb
+    command: ./daily-dish-server
+
+volumes:
+  mongodb_data:
