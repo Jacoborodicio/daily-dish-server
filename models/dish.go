@@ -6,6 +6,7 @@ import (
 
 type Dish struct {
 	Name            *string               `json:"name"`
+	Description     *string               `json:"description"`
 	Fat             *float64              `json:"fat"`
 	Ingredients     *[]primitive.ObjectID `bson:"ingredients"`
 	Recipe          *string               `json:"recipe"`

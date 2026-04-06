@@ -159,6 +159,9 @@ func UpdateDish(c *gin.Context) {
 	if dish.Name != nil {
 		updatedDish.Name = dish.Name
 	}
+	if dish.Description != nil {
+		updatedDish.Description = dish.Description
+	}
 	if dish.Fat != nil {
 		updatedDish.Fat = dish.Fat
 	}
@@ -194,6 +197,7 @@ func UpdateDish(c *gin.Context) {
 		bson.M{"_id": docId},
 		bson.M{
 			"name":            updatedDish.Name,
+			"description":     updatedDish.Description,
 			"fat":             updatedDish.Fat,
 			"ingredients":     updatedDish.Ingredients,
 			"recipe":          updatedDish.Recipe,
@@ -288,6 +292,7 @@ func HandleAudioUpload(c *gin.Context) {
 		bson.M{"_id": docId},
 		bson.M{
 			"name":            updatedDish.Name,
+			"description":     updatedDish.Description,
 			"fat":             updatedDish.Fat,
 			"ingredients":     updatedDish.Ingredients,
 			"recipe":          updatedDish.Recipe,
@@ -364,6 +369,7 @@ func DeleteAudio(c *gin.Context) {
 		bson.M{"_id": docId},
 		bson.M{
 			"name":            updatedDish.Name,
+			"description":     updatedDish.Description,
 			"fat":             updatedDish.Fat,
 			"ingredients":     updatedDish.Ingredients,
 			"recipe":          updatedDish.Recipe,
