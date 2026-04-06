@@ -174,20 +174,30 @@ func UpdateDish(c *gin.Context) {
 	if dish.Calories != nil {
 		updatedDish.Calories = dish.Calories
 	}
+	if dish.Protein != nil {
+		updatedDish.Protein = dish.Protein
+	}
+	if dish.Carbs != nil {
+		updatedDish.Carbs = dish.Carbs
+	}
 	if dish.PreparationTime != nil {
 		updatedDish.PreparationTime = dish.PreparationTime
+	}
+	if dish.CookTime != nil {
+		updatedDish.CookTime = dish.CookTime
 	}
 	if dish.Tags != nil {
 		updatedDish.Tags = dish.Tags
 	}
-
+	if dish.IngredientQuantities != nil {
+		updatedDish.IngredientQuantities = dish.IngredientQuantities
+	}
 	if dish.Public != nil {
 		updatedDish.Public = dish.Public
 	}
 	if dish.UserID != nil {
 		updatedDish.UserID = dish.UserID
 	}
-
 	if dish.Categories != nil {
 		updatedDish.Categories = dish.Categories
 	}
@@ -196,17 +206,21 @@ func UpdateDish(c *gin.Context) {
 		ctx,
 		bson.M{"_id": docId},
 		bson.M{
-			"name":            updatedDish.Name,
-			"description":     updatedDish.Description,
-			"fat":             updatedDish.Fat,
-			"ingredients":     updatedDish.Ingredients,
-			"recipe":          updatedDish.Recipe,
-			"calories":        updatedDish.Calories,
-			"preparationTime": updatedDish.PreparationTime,
-			"categories":      updatedDish.Categories,
-			"tags":            updatedDish.Tags,
-			"public":          updatedDish.Public,
-			"userid":          updatedDish.UserID,
+			"name":                 updatedDish.Name,
+			"description":          updatedDish.Description,
+			"fat":                  updatedDish.Fat,
+			"ingredients":          updatedDish.Ingredients,
+			"ingredientQuantities": updatedDish.IngredientQuantities,
+			"recipe":               updatedDish.Recipe,
+			"calories":             updatedDish.Calories,
+			"protein":              updatedDish.Protein,
+			"carbs":                updatedDish.Carbs,
+			"preparationTime":      updatedDish.PreparationTime,
+			"cooktime":             updatedDish.CookTime,
+			"categories":           updatedDish.Categories,
+			"tags":                 updatedDish.Tags,
+			"public":               updatedDish.Public,
+			"userid":               updatedDish.UserID,
 		},
 	)
 	if err != nil {
@@ -291,18 +305,22 @@ func HandleAudioUpload(c *gin.Context) {
 		ctx,
 		bson.M{"_id": docId},
 		bson.M{
-			"name":            updatedDish.Name,
-			"description":     updatedDish.Description,
-			"fat":             updatedDish.Fat,
-			"ingredients":     updatedDish.Ingredients,
-			"recipe":          updatedDish.Recipe,
-			"calories":        updatedDish.Calories,
-			"preparationTime": updatedDish.PreparationTime,
-			"tags":            updatedDish.Tags,
-			"categories":      updatedDish.Categories,
-			"public":          updatedDish.Public,
-			"userid":          updatedDish.UserID,
-			"audioUrl":        fileName,
+			"name":                 updatedDish.Name,
+			"description":          updatedDish.Description,
+			"fat":                  updatedDish.Fat,
+			"ingredients":          updatedDish.Ingredients,
+			"ingredientQuantities": updatedDish.IngredientQuantities,
+			"recipe":               updatedDish.Recipe,
+			"calories":             updatedDish.Calories,
+			"protein":              updatedDish.Protein,
+			"carbs":                updatedDish.Carbs,
+			"preparationTime":      updatedDish.PreparationTime,
+			"cooktime":             updatedDish.CookTime,
+			"tags":                 updatedDish.Tags,
+			"categories":           updatedDish.Categories,
+			"public":               updatedDish.Public,
+			"userid":               updatedDish.UserID,
+			"audioUrl":             fileName,
 		},
 	)
 	if err != nil {
@@ -368,18 +386,22 @@ func DeleteAudio(c *gin.Context) {
 		ctx,
 		bson.M{"_id": docId},
 		bson.M{
-			"name":            updatedDish.Name,
-			"description":     updatedDish.Description,
-			"fat":             updatedDish.Fat,
-			"ingredients":     updatedDish.Ingredients,
-			"recipe":          updatedDish.Recipe,
-			"calories":        updatedDish.Calories,
-			"preparationTime": updatedDish.PreparationTime,
-			"categories":      updatedDish.Categories,
-			"tags":            updatedDish.Tags,
-			"public":          updatedDish.Public,
-			"userid":          updatedDish.UserID,
-			"audioUrl":        "",
+			"name":                 updatedDish.Name,
+			"description":          updatedDish.Description,
+			"fat":                  updatedDish.Fat,
+			"ingredients":          updatedDish.Ingredients,
+			"ingredientQuantities": updatedDish.IngredientQuantities,
+			"recipe":               updatedDish.Recipe,
+			"calories":             updatedDish.Calories,
+			"protein":              updatedDish.Protein,
+			"carbs":                updatedDish.Carbs,
+			"preparationTime":      updatedDish.PreparationTime,
+			"cooktime":             updatedDish.CookTime,
+			"categories":           updatedDish.Categories,
+			"tags":                 updatedDish.Tags,
+			"public":               updatedDish.Public,
+			"userid":               updatedDish.UserID,
+			"audioUrl":             "",
 		},
 	)
 	if err != nil {
